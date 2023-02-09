@@ -23,9 +23,14 @@ public class ScheduleController : ControllerBase
     {
         var dbResults = ReadData();
 
-        var preparedResults = dbResults.Select((t) => {
-            t.Item1.Recurrences.Add(t.Item2);
-            return t.Item1;
+        // First get distinct events
+        var preparedResults = dbResults.GroupBy(p => p.Item1.Id)
+                                       .Select(grp => grp.FirstOrDefault().Item1);
+        
+        // Add events that match the event ID
+        preparedResults = preparedResults.Select(p => {
+            p.Recurrences.AddRange(dbResults.Where(d => d.Item2.EventId == p.Id).Select(d => d.Item2));
+            return p;
         });
 
         return Ok(preparedResults);
