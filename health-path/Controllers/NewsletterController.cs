@@ -20,6 +20,20 @@ public class NewsletterController : ControllerBase
     [HttpPost]
     public ActionResult Subscribe(string Email)
     {
+        // First we should Trim() and ToLower() the email to remove case-insensitive duplication and issues with spaces
+        Email = Email.ToLower().Trim();
+
+        if (Email.EndsWith("@gmail.com")) {
+            // Gmail ignores periods prior to the '@' so we should trim periods off 
+            // Note we only care about Gmail, other email providers don't ignore periods
+
+            // First get the address without the Gmail domain
+            var emailWithoutDomain = Email.Split("@").First();
+            
+            // Replace period character with empty string and restore the Gmail domain
+            Email = emailWithoutDomain.Replace(".", "") + "@gmail.com";
+        }
+
         var inserted = _connection.Execute(@"
             INSERT INTO NewsletterSubscription (Email)
             SELECT *
